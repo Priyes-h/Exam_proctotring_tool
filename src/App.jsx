@@ -16,14 +16,13 @@ function App() {
   const [stage, setStage] = useState('permissions');
 
   // Candidate Profile
-  const candidate = {
-    name: 'Vaibhav',
-    userId: 'student-101',
-  };
+  // Candidate details are entered on the pre-check screen; userId stores the roll number.
+  const [candidate, setCandidate] = useState({ name: '', userId: '' });
 
   // Permission States
   const [cameraEnabled, setCameraEnabled] = useState(false);
   const [fullScreen, setFullScreen] = useState(false);
+  const [screenSharing, setScreenSharing] = useState(false);
   const [timer, setTimer] = useState(0);
 
   // Exam Data States
@@ -41,6 +40,8 @@ function App() {
   // Refs
   const videoRef = useRef(null);
   const mediaStreamRef = useRef(null);
+  const screenStreamRef = useRef(null);
+  const screenVideoRef = useRef(null);
   const timerIntervalRef = useRef(null);
 
   // Capture proctoring frame and send to Electron main
@@ -65,7 +66,23 @@ function App() {
       console.error('Failed to capture proctor snapshot:', error);
     }
   }, []);
+// Attach the screen stream after React renders the preview video.
+useEffect(() => {
+  const video = screenVideoRef.current;
+  const stream = screenStreamRef.current;
 
+  if (!video || !stream) return;
+
+  video.srcObject = stream;
+
+  video.play().catch((error) => {
+    console.error("Could not play screen preview:", error);
+  });
+
+  return () => {
+    video.srcObject = null;
+  };
+}, [screenSharing]);
   // Setup Electron listeners on mount
   useEffect(() => {
     let removeTimerListener = () => {};
@@ -133,6 +150,65 @@ function App() {
       // Fallback for browsers / Electron if native fullscreen denied
       setFullScreen(true);
     }
+  }
+
+  // Ask the student to choose a screen or window and show its preview locally.
+  async function startScreenShare() {
+  try {
+    if (!navigator.mediaDevices?.getDisplayMedia) {
+      throw new Error(
+        "Screen sharing is not supported in this environment."
+      );
+    }
+
+    const stream = await navigator.mediaDevices.getDisplayMedia({
+      video: true,
+      audio: false,
+    });
+
+    const [screenTrack] = stream.getVideoTracks();
+
+    screenStreamRef.current = stream;
+
+    if (screenVideoRef.current) {
+      screenVideoRef.current.srcObject = stream;
+    }
+
+    setScreenSharing(true);
+
+    screenTrack?.addEventListener(
+      "ended",
+      () => {
+        screenStreamRef.current = null;
+        setScreenSharing(false);
+
+        if (screenVideoRef.current) {
+          screenVideoRef.current.srcObject = null;
+        }
+      },
+      { once: true }
+    );
+  } catch (error) {
+    console.error("Screen sharing failed:", {
+      name: error.name,
+      message: error.message,
+    });
+
+    if (error.name === "NotAllowedError") {
+      alert(
+        "Screen sharing was cancelled or denied. Please allow sharing and try again."
+      );
+    } else {
+      alert(`Screen sharing failed: ${error.message}`);
+    }
+  }
+}
+
+  // Stop every screen-capture track when the assessment is finished or restarted.
+  function stopScreenShare() {
+    screenStreamRef.current?.getTracks().forEach((track) => track.stop());
+    screenStreamRef.current = null;
+    setScreenSharing(false);
   }
 
   // Start Exam Flow: Connect to Backend API
@@ -212,6 +288,7 @@ function App() {
     try {
       const response = await submitExam(sessionId);
       setResultData(response.result);
+      stopScreenShare();
       setStage('result');
     } catch (error) {
       console.error('Failed to submit exam:', error);
@@ -234,6 +311,7 @@ function App() {
 
   // Reset to Start
   function handleRestart() {
+    stopScreenShare();
     setStage('permissions');
     setSessionId('');
     setQuestions([]);
@@ -299,6 +377,33 @@ function App() {
 
       {/* Main Permissions Card */}
       <div className="card-container">
+        {/* Candidate details are associated with the backend exam session. */}
+        <div className="permission-item candidate-details">
+          <div className="permission-content">
+            <h3>Candidate details</h3>
+            <label htmlFor="candidate-name">Name</label>
+            <input
+              id="candidate-name"
+              className="candidate-input"
+              type="text"
+              autoComplete="name"
+              value={candidate.name}
+              onChange={(event) => setCandidate((current) => ({ ...current, name: event.target.value }))}
+              placeholder="Enter your name"
+            />
+            <label htmlFor="candidate-roll-number">Roll number</label>
+            <input
+              id="candidate-roll-number"
+              className="candidate-input"
+              type="text"
+              value={candidate.userId}
+              onChange={(event) => setCandidate((current) => ({ ...current, userId: event.target.value }))}
+              placeholder="Enter your roll number"
+            />
+          </div>
+        </div>
+
+        <div className="divider"></div>
         {/* Section 1: Configure Heimdall / Camera */}
         <div className="permission-item">
           <div className="icon-box">
@@ -358,13 +463,40 @@ function App() {
             </button>
           </div>
         </div>
+
+        <div className="divider"></div>
+
+        {/* Screen capture is requested by an explicit student click. */}
+        <div className="permission-item">
+          <div className="permission-content">
+            <h3>Share your screen</h3>
+            <p>Choose the screen or window to share for this assessment.</p>
+            <button
+              type="button"
+              className={`btn ${screenSharing ? 'btn-success-solid' : 'btn-secondary'}`}
+              disabled={screenSharing}
+              onClick={startScreenShare}
+            >
+              {screenSharing ? '✓ Screen Sharing' : 'Share Screen'}
+            </button>
+            {screenSharing && (
+              <video
+                ref={screenVideoRef}
+                autoPlay
+                playsInline
+                muted
+                className="screen-preview"
+              />
+            )}
+          </div>
+        </div>
       </div>
 
       {/* Bottom Action Buttons */}
       <div className="bottom-actions">
         <button
           className="btn btn-primary"
-          disabled={!cameraEnabled || !fullScreen || isStartingExam}
+          disabled={!candidate.name.trim() || !candidate.userId.trim() || !cameraEnabled || !fullScreen || !screenSharing || isStartingExam}
           onClick={handleGoToTest}
         >
           {isStartingExam ? 'Connecting to Backend...' : 'Go To Test'}

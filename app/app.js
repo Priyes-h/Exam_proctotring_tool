@@ -1,4 +1,10 @@
-import { app, BrowserWindow, ipcMain, dialog } from "electron";
+import {
+  app,
+  BrowserWindow,
+  ipcMain,
+  dialog,
+  desktopCapturer,
+  session,} from "electron";
 import path from "path";
 import fs from "fs";
 import { fork } from "child_process";
@@ -113,8 +119,32 @@ ipcMain.on("show-rules", () => {
 });
 
 app.whenReady().then(() => {
-    startBackendServer();
-    createWindow();
+  session.defaultSession.setDisplayMediaRequestHandler(
+    async (request, callback) => {
+      try {
+        const sources = await desktopCapturer.getSources({
+          types: ["screen", "window"],
+          thumbnailSize: { width: 800, height: 600 },
+        });
+
+        // Don't silently share a screen if none is available.
+        if (sources.length === 0) {
+          callback({});
+          return;
+        }
+
+        // Temporary test: share the first available screen/window.
+        // Replace this with a source-selection dialog for production.
+        callback({ video: sources[0] });
+      } catch (error) {
+        console.error("Electron screen capture error:", error);
+        callback({});
+      }
+    }
+  );
+
+  startBackendServer();
+  createWindow();
 });
 
 app.on("will-quit", () => {

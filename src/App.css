@@ -95,6 +95,46 @@
   margin-bottom: 20px;
 }
 
+/* Keep the student identity fields aligned with the pre-check content. */
+.candidate-details .permission-content {
+  display: grid;
+  gap: 8px;
+}
+
+.candidate-details .permission-content h3 {
+  margin-bottom: 2px;
+}
+
+.candidate-details label {
+  color: #334155;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.candidate-input {
+  width: 100%;
+  max-width: 420px;
+  padding: 11px 12px;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  color: #0f172a;
+  font: inherit;
+}
+
+.candidate-input:focus {
+  outline: 2px solid #93c5fd;
+  outline-offset: 1px;
+}
+
+.screen-preview {
+  display: block;
+  width: min(100%, 420px);
+  margin-top: 14px;
+  border: 2px solid #22c55e;
+  border-radius: 8px;
+  background: #000;
+}
+
 .divider {
   height: 1px;
   background-color: #f1f5f9;
