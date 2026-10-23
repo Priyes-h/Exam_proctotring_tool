@@ -9,10 +9,11 @@ import {
 } from './api/examApi';
 import ExamScreen from './components/ExamScreen';
 import ResultScreen from './components/ResultScreen';
+import AnalyticsFeedback from './components/AnalyticsFeedback';
 
 
 function App() {
-  // Navigation Stage: 'permissions' | 'exam' | 'result'
+  // Navigation Stage: 'permissions' | 'exam' | 'result' | 'analytics'
   const [stage, setStage] = useState('permissions');
 
   // Candidate Profile
@@ -351,9 +352,19 @@ useEffect(() => {
         resultData={resultData}
         timerSeconds={timer}
         onRestart={handleRestart}
+        onViewAnalytics={() => setStage("analytics")}
       />
     );
   }
+  
+  if (stage === "analytics") {
+    return (
+      <AnalyticsFeedback
+        sessionId={sessionId}
+        onBack={() => setStage("result")}
+      />
+    );
+}
 
   // RENDER: Permissions / Pre-check Screen (Matching image.png)
   return (

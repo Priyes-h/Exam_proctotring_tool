@@ -8,6 +8,7 @@ export default function ResultScreen({
   resultData = { attempted: 0, correct: 0, wrong: 0 },
   timerSeconds = 0,
   onRestart,
+   onViewAnalytics,
 }) {
   const attempted = resultData?.attempted ?? 0;
   const correct = resultData?.correct ?? 0;
@@ -111,6 +112,9 @@ export default function ResultScreen({
         <div className="result-actions">
           <button type="button" className="btn btn-primary" onClick={onRestart}>
             Take Another Assessment
+          </button>
+          <button onClick={onViewAnalytics}>
+              View Analytics & Feedback
           </button>
         </div>
       </div>
