@@ -279,9 +279,6 @@ Contributions, suggestions, and bug reports are welcome.
 4. Test the affected functionality.
 5. Submit a pull request describing your changes.
 
-## 📄 License
-
-A license has not yet been specified. Add a `LICENSE` file and update this section before distributing the project.
 
 ---
 
