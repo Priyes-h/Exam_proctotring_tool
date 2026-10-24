@@ -8,7 +8,8 @@
       "React Process",
       "Preload Process"
     ],
-    "correctAnswer": 1
+    "correctAnswer": 1,
+    "topic": "Electron"
   },
   {
     "id": 2,
@@ -19,7 +20,8 @@
       "fs.writeFileSync",
       "dialog.showMessageBox"
     ],
-    "correctAnswer": 0
+    "correctAnswer": 0,
+    "topic": "Electron"
   },
   {
     "id": 3,
@@ -30,7 +32,8 @@
       "To create the Express server",
       "To replace the main process"
     ],
-    "correctAnswer": 1
+    "correctAnswer": 1,
+    "topic": "Electron Security"
   },
   {
     "id": 4,
@@ -41,7 +44,8 @@
       "PATCH",
       "CONNECT"
     ],
-    "correctAnswer": 0
+    "correctAnswer": 0,
+    "topic": "HTTP and APIs"
   },
   {
     "id": 5,
@@ -52,6 +56,187 @@
       "Starts the Electron renderer",
       "Sends an IPC event"
     ],
-    "correctAnswer": 1
+    "correctAnswer": 1,
+    "topic": "Node.js File System"
+  },
+  {
+    "id": 6,
+    "question": "Which React hook is commonly used to manage component state?",
+    "options": [
+      "useRoute",
+      "useState",
+      "useServer",
+      "useFile"
+    ],
+    "correctAnswer": 1,
+    "topic": "React"
+  },
+  {
+    "id": 7,
+    "question": "Which React hook is commonly used to perform side effects such as fetching data?",
+    "options": [
+      "useEffect",
+      "useClass",
+      "useStyle",
+      "useHTML"
+    ],
+    "correctAnswer": 0,
+    "topic": "React"
+  },
+  {
+    "id": 8,
+    "question": "What is the primary purpose of Express.js?",
+    "options": [
+      "To build and manage web server routes and middleware",
+      "To compile Python programs",
+      "To design database tables automatically",
+      "To replace the operating system"
+    ],
+    "correctAnswer": 0,
+    "topic": "Express.js"
+  },
+  {
+    "id": 9,
+    "question": "Which Express method is used to define a route that handles POST requests?",
+    "options": [
+      "app.fetch()",
+      "app.post()",
+      "app.read()",
+      "app.createRoute()"
+    ],
+    "correctAnswer": 1,
+    "topic": "Express.js"
+  },
+  {
+    "id": 10,
+    "question": "Which Express middleware parses incoming JSON request bodies?",
+    "options": [
+      "express.static()",
+      "express.json()",
+      "express.router()",
+      "express.file()"
+    ],
+    "correctAnswer": 1,
+    "topic": "Express.js"
+  },
+  {
+    "id": 11,
+    "question": "Where are query parameters typically accessed in an Express route?",
+    "options": [
+      "req.body",
+      "req.params",
+      "req.query",
+      "res.query"
+    ],
+    "correctAnswer": 2,
+    "topic": "HTTP and APIs"
+  },
+  {
+    "id": 12,
+    "question": "What does HTTP status code 404 indicate?",
+    "options": [
+      "The request succeeded",
+      "The server encountered an internal error",
+      "The requested resource was not found",
+      "The client is unauthorized"
+    ],
+    "correctAnswer": 2,
+    "topic": "HTTP and APIs"
+  },
+  {
+    "id": 13,
+    "question": "Which Node.js module provides file-system operations?",
+    "options": [
+      "http",
+      "fs",
+      "path",
+      "events"
+    ],
+    "correctAnswer": 1,
+    "topic": "Node.js File System"
+  },
+  {
+    "id": 14,
+    "question": "What is the main purpose of JSON.parse()?",
+    "options": [
+      "Convert a JavaScript object into JSON text",
+      "Convert JSON text into a JavaScript value",
+      "Write JSON directly to a file",
+      "Send an HTTP response"
+    ],
+    "correctAnswer": 1,
+    "topic": "Node.js and JSON"
+  },
+  {
+    "id": 15,
+    "question": "Which method converts a JavaScript object into a JSON string?",
+    "options": [
+      "JSON.parse()",
+      "JSON.read()",
+      "JSON.stringify()",
+      "JSON.convert()"
+    ],
+    "correctAnswer": 2,
+    "topic": "Node.js and JSON"
+  },
+  {
+    "id": 16,
+    "question": "What is the purpose of CORS middleware in an Express application?",
+    "options": [
+      "To define database schemas",
+      "To control which origins are allowed to access resources through browsers",
+      "To encrypt every file on the server",
+      "To automatically authenticate all users"
+    ],
+    "correctAnswer": 1,
+    "topic": "Express.js"
+  },
+  {
+    "id": 17,
+    "question": "Which Electron setting helps prevent a renderer from accessing Node.js APIs directly?",
+    "options": [
+      "nodeIntegration: true",
+      "contextIsolation: false",
+      "nodeIntegration: false",
+      "webSecurity: false"
+    ],
+    "correctAnswer": 2,
+    "topic": "Electron Security"
+  },
+  {
+    "id": 18,
+    "question": "Why should an API validate data submitted by a student?",
+    "options": [
+      "To make the browser load faster in every case",
+      "To reject invalid or unexpected input",
+      "To automatically create React components",
+      "To avoid sending any HTTP responses"
+    ],
+    "correctAnswer": 1,
+    "topic": "API Validation"
+  },
+  {
+    "id": 19,
+    "question": "In an exam application, why should the server verify the selected answer against the correct answer?",
+    "options": [
+      "To let the client decide its own score",
+      "To calculate results using trusted server-side data",
+      "To prevent the questions from being displayed",
+      "To remove the need for sessions"
+    ],
+    "correctAnswer": 1,
+    "topic": "Exam System"
+  },
+  {
+    "id": 20,
+    "question": "Why is a session ID useful in an online exam system?",
+    "options": [
+      "It identifies a particular exam session",
+      "It replaces every question ID",
+      "It stores CSS styles",
+      "It automatically enables the camera"
+    ],
+    "correctAnswer": 0,
+    "topic": "Exam System"
   }
 ]

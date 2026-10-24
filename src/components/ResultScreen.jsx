@@ -113,7 +113,7 @@ export default function ResultScreen({
           <button type="button" className="btn btn-primary" onClick={onRestart}>
             Take Another Assessment
           </button>
-          <button onClick={onViewAnalytics}>
+          <button className="btn btn-primary" onClick={onViewAnalytics}>
               View Analytics & Feedback
           </button>
         </div>
