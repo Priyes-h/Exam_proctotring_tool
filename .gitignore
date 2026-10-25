@@ -8,3 +8,5 @@ dist/
 Exam_proctotring_tool/
 backend/data/sessions.jsonapp/user-camera-snap/
 app/user-screen-snap/
+app/user-camera-snap/
+backend/data/sessions.json
