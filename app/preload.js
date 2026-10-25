@@ -12,7 +12,14 @@ contextBridge.exposeInMainWorld("athena", {
         return () => {
             ipcRenderer.removeListener('timer', fn);
         };
-    },
+    },registerListenerForScreenSnapFromMain: (callback) => {
+  const fn = () => callback();
+  ipcRenderer.on("screen-shot", fn);
+
+  return () => {
+    ipcRenderer.removeListener("screen-shot", fn);
+  };
+},
     startTimerOnMain: () => {
         try {
             return ipcRenderer.invoke('start-timer');
@@ -37,5 +44,11 @@ contextBridge.exposeInMainWorld("athena", {
     // Functions related to showing Contest Rules in a new Dialog
     showRules: () => {
         ipcRenderer.send("show-rules");
-    }
+    },
+    
+    // Capture a screenshot of the user's screen
+    captureUserScreen: () => {
+        return ipcRenderer.invoke("capture-user-screen");
+    },
+
 });

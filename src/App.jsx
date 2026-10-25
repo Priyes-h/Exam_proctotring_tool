@@ -11,8 +11,8 @@ import ExamScreen from './components/ExamScreen';
 import ResultScreen from './components/ResultScreen';
 import AnalyticsFeedback from './components/AnalyticsFeedback';
 
-
 function App() {
+  
   // Navigation Stage: 'permissions' | 'exam' | 'result' | 'analytics'
   const [stage, setStage] = useState('permissions');
 
@@ -101,14 +101,26 @@ useEffect(() => {
           saveVideoScreenShots
         );
       }
+      let removeScreenSnapListener = () => {};
+
+if (
+  typeof window.athena.registerListenerForScreenSnapFromMain === "function"
+) {
+  removeScreenSnapListener =
+    window.athena.registerListenerForScreenSnapFromMain(
+      captureScreenSnapshot
+    );
+}
     }
 
     return () => {
       removeTimerListener();
       removeCameraSnapListener();
+      removeCameraSnapListener()
       if (timerIntervalRef.current) {
         clearInterval(timerIntervalRef.current);
       }
+      
     };
   }, [saveVideoScreenShots]);
 
@@ -205,6 +217,63 @@ useEffect(() => {
   }
 }
 
+async function captureScreenSnapshot() {
+  try {
+    if (window.athena?.captureUserScreen) {
+      const result = await window.athena.captureUserScreen();
+
+      if (!result.success) {
+        throw new Error(result.error || "Screen capture failed");
+      }
+
+      console.log("Screen snapshot saved:", result.filename);
+      return result;
+    }
+
+    // Browser fallback: capture a frame from the screen
+    // stream the student has explicitly chosen to share.
+    const stream = screenStreamRef.current;
+    const track = stream?.getVideoTracks()[0];
+
+    if (!track) {
+      throw new Error("Please share your screen first.");
+    }
+
+    const imageCapture = new ImageCapture(track);
+    const blob = await imageCapture.grabFrame();
+
+    const canvas = document.createElement("canvas");
+    canvas.width = blob.width;
+    canvas.height = blob.height;
+
+    const context = canvas.getContext("2d");
+    context.drawImage(blob, 0, 0);
+
+    const imageBlob = await new Promise((resolve) =>
+      canvas.toBlob(resolve, "image/png")
+    );
+
+    if (!imageBlob) {
+      throw new Error("Could not create screenshot.");
+    }
+
+    // Browser mode can preview/download the screenshot,
+    // but cannot write directly to an arbitrary disk folder.
+    const url = URL.createObjectURL(imageBlob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `screen-${Date.now()}.png`;
+    link.click();
+    URL.revokeObjectURL(url);
+
+    return { success: true };
+  } catch (error) {
+    console.error("Screen snapshot failed:", error);
+    return { success: false, error: error.message };
+  }
+}
+
+
   // Stop every screen-capture track when the assessment is finished or restarted.
   function stopScreenShare() {
     screenStreamRef.current?.getTracks().forEach((track) => track.stop());
@@ -215,6 +284,12 @@ useEffect(() => {
   // Start Exam Flow: Connect to Backend API
   async function handleGoToTest() {
     setIsStartingExam(true);
+    const result = await captureScreenSnapshot();
+
+    if (!result.success) {
+      console.error("Could not save screen snapshot:", result.error);
+    }
+
     setApiError(null);
 
     try {

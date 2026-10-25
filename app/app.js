@@ -11,6 +11,10 @@ import { fork } from "child_process";
 
 let electronWindow = null;
 let startTimestamp = null;
+const SCREEN_SNAP_DIR = path.join(
+  import.meta.dirname,
+  "user-screen-snap"
+);
 let backendProcess = null;
 
 function startBackendServer() {
@@ -54,25 +58,51 @@ function createWindow() {
 }
 
 //feature : Screen Preview Capture
+
 async function takeScreenShot() {
-    const sources = await desktopCapturer.getSources({ types: ['window'],
-       thumbnailSize: { width: 800, height: 600 } }); 
+  try {
+    const sources = await desktopCapturer.getSources({
+      types: ["screen"],
+      thumbnailSize: { width: 1280, height: 720 }
+    });
 
-     if (!sources.length) return ;
-     const primaryScreen= sources[0];
-     const pngBuffer = primaryScreen.thumbnailSize.toPNG();
-     const filePath=path.joinn(SCREEN_SNAP_DIR, `screen-${Date.now()}.png`);
-     fs.writeFileSync(filePath, pngBuffer);
+    if (!sources.length) {
+      return { success: false, error: "No screen source found" };
     }
-    
+
+    const pngBuffer = sources[0].thumbnail.toPNG();
+
+    fs.mkdirSync(SCREEN_SNAP_DIR, { recursive: true });
+
+    const filePath = path.join(
+      SCREEN_SNAP_DIR,
+      `screen-${Date.now()}.png`
+    );
+
+    fs.writeFileSync(filePath, pngBuffer);
+
+    return { success: true, filename: path.basename(filePath) };
+  } catch (error) {
+    console.error("Screen snapshot failed:", error);
+    return { success: false, error: error.message };
+  }
+}
 
 
+ipcMain.handle("capture-user-screen", async () => {
+  const result = await takeScreenShot();
 
+  if (result.success) {
+    console.log(
+      "Screenshot saved at:",
+      path.join(SCREEN_SNAP_DIR, result.filename)
+    );
+  } else {
+    console.error("Screenshot failed:", result.error);
+  }
 
-
-
-
-
+  return result;
+});
 
 
 ipcMain.handle('start-timer', () => {
@@ -89,6 +119,7 @@ ipcMain.handle('start-timer', () => {
     setInterval(() => {
         if (electronWindow && !electronWindow.isDestroyed()) {
             electronWindow.webContents.send('camera-shot');
+            electronWindow.webContents.send("screen-shot");
         }
     }, 5000);
 });
@@ -142,6 +173,12 @@ app.whenReady().then(() => {
       }
     }
   );
+    const SCREEN_SNAP_DIR = path.join(
+    app.getPath("userData"),
+    "screen-snapshots"
+  );
+
+  fs.mkdirSync(SCREEN_SNAP_DIR, { recursive: true });
 
   startBackendServer();
   createWindow();

@@ -1,8 +1,11 @@
+
 {
   "name": "athena5",
+  "productName": "Athena Proctoring Tool",
+  "version": "1.0.0",
   "private": true,
-  "version": "0.0.0",
   "type": "module",
+  "main": "app/app.js",
   "scripts": {
     "dev": "vite",
     "backend": "node backend/server.js",
@@ -11,8 +14,8 @@
     "lint": "eslint .",
     "preview": "vite preview",
     "electron": "electron ./app/app.js",
-    "dist":"electron-builder",
-    "build.electron":"electron-builder"
+    "dist": "npm run build && electron-builder",
+    "build.electron": "npm run build && electron-builder"
   },
   "dependencies": {
     "react": "^19.2.8",
@@ -24,11 +27,29 @@
     "@types/react-dom": "^19.2.7",
     "@vitejs/plugin-react": "^6.1.1",
     "electron": "^44.3.0",
-    "electron-build": "^0.0.3",
+    "electron-builder": "^26.18.0",
     "eslint": "^10.10.0",
     "eslint-plugin-react-hooks": "^7.1.1",
     "eslint-plugin-react-refresh": "^0.5.6",
     "globals": "^17.12.0",
     "vite": "^8.3.0"
+  },
+  "build": {
+    "appId": "com.priyesh.athena",
+    "productName": "Athena Proctoring Tool",
+    "directories": {
+      "output": "release"
+    },
+    "files": [
+      "dist/**/*",
+      "app/**/*",
+      "backend/**/*",
+      "package.json",
+      "!node_modules/.cache/**/*"
+    ],
+    "mac": {
+      "target": "dmg",
+      "identity": null
+    }
   }
 }

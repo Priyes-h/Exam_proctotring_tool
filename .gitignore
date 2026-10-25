@@ -6,4 +6,5 @@ node_modules/
 dist/
 .DS_Store
 Exam_proctotring_tool/
-backend/data/sessions.json
+backend/data/sessions.jsonapp/user-camera-snap/
+app/user-screen-snap/
