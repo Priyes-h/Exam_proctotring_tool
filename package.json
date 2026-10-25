@@ -43,12 +43,29 @@
     "files": [
       "dist/**/*",
       "app/**/*",
-      "backend/**/*",
       "package.json",
       "!node_modules/.cache/**/*"
     ],
+    
+"extraResources": [
+  {
+    "from": "backend",
+    "to": "backend",
+    "filter": [
+      "server.js",
+      "package.json",
+      "package-lock.json",
+      "data/**/*"
+    ]
+  },
+  {
+    "from": "backend/node_modules",
+    "to": "backend/node_modules"
+  }
+],
+
     "mac": {
-      "target": "dmg",
+      "target": ["dmg"],
       "identity": null
     }
   }

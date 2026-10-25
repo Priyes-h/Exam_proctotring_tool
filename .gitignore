@@ -1,12 +1,29 @@
+
+# Dependencies
 node_modules/
 **/node_modules/
+
+# Environment secrets
 .env
 .env.*
 !.env.example
+**/.env
+**/.env.*
+!**/.env.example
+
+# Build output
 dist/
+release/
+
+# macOS
 .DS_Store
-Exam_proctotring_tool/
-backend/data/sessions.jsonapp/user-camera-snap/
-app/user-screen-snap/
+
+# Generated screenshots
 app/user-camera-snap/
+app/user-screen-snap/
+
+# Exam session data
 backend/data/sessions.json
+
+# Local project folder, if generated
+Exam_proctotring_tool/

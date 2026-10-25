@@ -4,20 +4,45 @@ const fs = require("fs");
 const path = require("path");
 const Groq = require("groq-sdk");
 const dotenv = require("dotenv");
-dotenv.config();
+
+dotenv.config({
+  path: path.join(__dirname, ".env")
+});
 
 const app = express();
-const PORT = 3000;
+const PORT = process.env.PORT || 3000;
 
 app.use(cors());
 app.use(express.json());
 
-const dataDir = path.join(__dirname, "data");
-const questionsPath = path.join(dataDir, "questions.json");
-const sessionsPath = path.join(dataDir, "sessions.json");
+
+
+
+const backendDir = __dirname;
+const bundledDataDir = path.join(backendDir, "data");
+
+const dataDir =
+  process.env.ATHENA_DATA_DIR || bundledDataDir;
+
+fs.mkdirSync(dataDir, { recursive: true });
+
+const questionsPath = path.join(
+  bundledDataDir,
+  "questions.json"
+);
+
+const sessionsPath = path.join(
+  dataDir,
+  "sessions.json"
+);
+
 const groq = process.env.GROQ_API_KEY
   ? new Groq({ apiKey: process.env.GROQ_API_KEY })
   : null;
+console.log(
+  "Groq API key loaded:",
+  Boolean(process.env.GROQ_API_KEY)
+);
 
 if (!fs.existsSync(dataDir)) {
   fs.mkdirSync(dataDir, { recursive: true });

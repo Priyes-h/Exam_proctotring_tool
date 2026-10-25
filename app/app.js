@@ -11,28 +11,68 @@ import { fork } from "child_process";
 
 let electronWindow = null;
 let startTimestamp = null;
+let timerInterval = null;
+let snapshotInterval = null;
+
+
+
+
+
 const SCREEN_SNAP_DIR = path.join(
-  import.meta.dirname,
+  app.getPath("userData"),
   "user-screen-snap"
 );
+const CAMERA_SNAP_DIR = path.join(app.getPath("userData"), "user-camera-snap");
+
+
 let backendProcess = null;
 
+
+
+
 function startBackendServer() {
-    const backendServerPath = path.join(import.meta.dirname, "../backend/server.js");
-    if (fs.existsSync(backendServerPath)) {
-        try {
-            backendProcess = fork(backendServerPath, [], {
-                stdio: 'inherit',
-                env: { ...process.env, PORT: process.env.PORT || '3000' }
-            });
-            backendProcess.on('error', (err) => {
-                console.warn('Backend process notice:', err.message);
-            });
-        } catch (e) {
-            console.warn('Could not auto-start backend server:', e.message);
-        }
-    }
+  const backendServerPath = app.isPackaged
+    ? path.join(process.resourcesPath, "backend", "server.js")
+    : path.join(import.meta.dirname, "../backend/server.js");
+
+  console.log("Packaged:", app.isPackaged);
+  console.log("Backend path:", backendServerPath);
+  console.log("Backend exists:", fs.existsSync(backendServerPath));
+
+  if (!fs.existsSync(backendServerPath)) {
+    console.error("Backend file not found:", backendServerPath);
+    return;
+  }
+
+  try {
+    backendProcess = fork(backendServerPath, [], {
+      stdio: "inherit",
+env: {
+  ...process.env,
+  PORT: process.env.PORT || "3000",
+  NODE_ENV: app.isPackaged ? "production" : "development",
+  ATHENA_DATA_DIR: path.join(
+    app.getPath("userData"),
+    "backend-data"
+  ),
+  GROQ_API_KEY: process.env.GROQ_API_KEY,
+},
+    });
+
+    backendProcess.on("error", (err) => {
+      console.error("Backend startup error:", err);
+    });
+
+    backendProcess.on("exit", (code, signal) => {
+      console.log("Backend exited:", { code, signal });
+      backendProcess = null;
+    });
+  } catch (error) {
+    console.error("Could not start backend:", error);
+  }
 }
+
+
 
 function stopBackendServer() {
     if (backendProcess && !backendProcess.killed) {
@@ -54,7 +94,13 @@ function createWindow() {
         }
     });
 
-    electronWindow.loadURL('http://localhost:5173');
+   if (app.isPackaged) {
+  electronWindow.loadFile(
+    path.join(app.getAppPath(), "dist", "index.html")
+  );
+} else {
+  electronWindow.loadURL("http://localhost:5173");
+}
 }
 
 //feature : Screen Preview Capture
@@ -105,33 +151,52 @@ ipcMain.handle("capture-user-screen", async () => {
 });
 
 
-ipcMain.handle('start-timer', () => {
-    startTimestamp = Date.now();
+ipcMain.handle("start-timer", () => {
+  if (timerInterval) clearInterval(timerInterval);
+  if (snapshotInterval) clearInterval(snapshotInterval);
 
-    // Send Timer Tick every 1s
-    setInterval(() => {
-        if (electronWindow && !electronWindow.isDestroyed()) {
-            electronWindow.webContents.send('timer', (Date.now() - startTimestamp) / 1000);
-        }
-    }, 1000);
+  startTimestamp = Date.now();
 
-    // Capture user's camera snap every 5s
-    setInterval(() => {
-        if (electronWindow && !electronWindow.isDestroyed()) {
-            electronWindow.webContents.send('camera-shot');
-            electronWindow.webContents.send("screen-shot");
-        }
-    }, 5000);
+  timerInterval = setInterval(() => {
+    if (electronWindow && !electronWindow.isDestroyed()) {
+      electronWindow.webContents.send(
+        "timer",
+        (Date.now() - startTimestamp) / 1000
+      );
+    }
+  }, 1000);
+
+  snapshotInterval = setInterval(() => {
+    if (electronWindow && !electronWindow.isDestroyed()) {
+      electronWindow.webContents.send("camera-shot");
+      electronWindow.webContents.send("screen-shot");
+    }
+  }, 5000);
+
+  return { success: true };
 });
 
-ipcMain.handle('store-camera-snap-image-on-disk', (_event, data) => {
-    const snapDir = path.join(import.meta.dirname, "user-camera-snap");
-    if (!fs.existsSync(snapDir)) {
-        fs.mkdirSync(snapDir, { recursive: true });
-    }
+
+
+ipcMain.handle("store-camera-snap-image-on-disk", async (_event, data) => {
+  try {
+const snapDir = path.join(
+  app.getPath("userData"),
+  "user-camera-snap"
+);
+
+    fs.mkdirSync(snapDir, { recursive: true });
+
     const filePath = path.join(snapDir, `${Date.now()}.jpg`);
     fs.writeFileSync(filePath, Buffer.from(data));
+
+    return { success: true, filename: path.basename(filePath) };
+  } catch (error) {
+    console.error("Failed to save camera snapshot:", error);
+    return { success: false, error: error.message };
+  }
 });
+
 
 ipcMain.on("show-rules", () => {
     if (electronWindow && !electronWindow.isDestroyed()) {
@@ -173,19 +238,21 @@ app.whenReady().then(() => {
       }
     }
   );
-    const SCREEN_SNAP_DIR = path.join(
-    app.getPath("userData"),
-    "screen-snapshots"
-  );
 
   fs.mkdirSync(SCREEN_SNAP_DIR, { recursive: true });
-
+ if (!app.isPackaged) {
+  dotenv.config({
+    path: path.join(import.meta.dirname, "../backend/.env"),
+  });
+}
   startBackendServer();
   createWindow();
 });
 
 app.on("will-quit", () => {
-    stopBackendServer();
+  if (timerInterval) clearInterval(timerInterval);
+  if (snapshotInterval) clearInterval(snapshotInterval);
+  stopBackendServer();
 });
 
 app.on("window-all-closed", () => {
